@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Registro</title>
+</head>
+<body>
+  <h1>Registro</h1>
+  <form id="registerForm">
+  <input type="email" id="email" placeholder="Correo" required><br>
+  <input type="password" id="password" placeholder="Contraseña" required><br>
+
+  <div class="g-recaptcha" data-sitekey="6Lf-NlorAAAAAOaObAI_jb5oAIYU0FGujgyCxIeZ"></div><br>
+  
+  <button type="submit">Registrarse</button>
+</form>
+
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+  <script>
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const token = grecaptcha.getResponse();
+
+  if (!token) {
+    alert("⚠️ Completa el CAPTCHA primero");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:8080/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, token })
+    });
+
+    const text = await res.text();
+    alert(text);
+  } catch (err) {
+    console.error("❌ Error en fetch:", err);
+    alert("Error en conexión");
+  }
+});
+  </script>
+</body>
+</html>
