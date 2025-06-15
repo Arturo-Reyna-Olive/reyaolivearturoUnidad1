@@ -51,7 +51,7 @@ async fn register_user(
 }
 
 pub fn routes() -> Scope {
-    web::scope("/auth") // ✅ Esto monta todo bajo /auth
+    web::scope("/auth") // 
         .service(register_user)
         .service(login::login_user)
 }

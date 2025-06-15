@@ -10,7 +10,7 @@ if len(sys.argv) != 3:
 to_email = sys.argv[1]
 reset_link = sys.argv[2]
 
-# Configura tu cuenta (debe ser Gmail con contraseña de aplicación)
+# tu cuenta 
 SMTP_EMAIL = "arturoreyna694@gmail.com"
 SMTP_PASS = "ywjplzbcfdxblpqi"
 

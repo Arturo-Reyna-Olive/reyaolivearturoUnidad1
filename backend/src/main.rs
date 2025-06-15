@@ -44,7 +44,7 @@ async fn main() -> std::io::Result<()> {
             )
             .service(
                 web::scope("/")
-                    .service(send_contact::send_contact) // aquí montamos la nueva ruta
+                    .service(send_contact::send_contact) 
             )
     })
     .bind(("127.0.0.1", 8000))?

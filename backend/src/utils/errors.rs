@@ -1,1 +1,0 @@
-// Temporalmente puedes dejarlo vacío o implementar luego si usarás manejo personalizado de errores

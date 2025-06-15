@@ -23,7 +23,7 @@ pub async fn recover_password(
 
     match result {
         Ok(Some(_)) => {
-            // Token simulado por ahora
+            
             let token = "abc123";
 
             // ✅ IMPORTANTE: NO uses "index.html", usa solo "/#reset"
