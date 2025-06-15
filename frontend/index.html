@@ -123,7 +123,20 @@
     </form>
   </div>
 </div>
-
+<!-- Modal de Ayuda / FAQ -->
+<div id="helpModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 hidden">
+  <div class="bg-[#0f1c2e] rounded-lg border border-blue-700 w-full max-w-lg p-6 text-white relative">
+    <button onclick="closeModal('helpModal')" class="absolute top-2 right-3 text-gray-400 hover:text-red-400 text-2xl">&times;</button>
+    <h3 class="text-2xl font-bold text-blue-300 mb-4 text-center">Preguntas Frecuentes</h3>
+    <ul class="space-y-4 text-sm text-blue-200 list-disc list-inside">
+      <li><strong>¿Cómo me registro?</strong><br>Puedes hacerlo desde el botón “Registro” en el menú superior.</li>
+      <li><strong>¿Cómo inicio sesión?</strong><br>Haz clic en “Iniciar sesión” y proporciona tu correo y contraseña.</li>
+      <li><strong>¿Qué hago si olvidé mi contraseña?</strong><br>En el login, haz clic en “¿Olvidaste tu contraseña?” y recibirás un correo para recuperarla.</li>
+      <li><strong>¿Cómo puedo contactar al soporte?</strong><br>Abre el chat de soporte o la sección “Contacto” para escribirnos directamente.</li>
+      <li><strong>¿Dónde puedo enviar sugerencias?</strong><br>El “Buzón de sugerencias” está disponible en el menú (solo para usuarios registrados).</li>
+    </ul>
+  </div>
+</div>
 <!-- Modal de Perfil -->
 <div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 hidden">
   <div class="bg-[#0f1c2e] rounded-lg border border-blue-700 w-full max-w-md p-6 text-white relative">
