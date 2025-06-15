@@ -1,64 +1,57 @@
-use actix_web::{web, HttpResponse};
+use actix_web::{post, web, HttpResponse, Scope};
 use serde::Deserialize;
 use sqlx::PgPool;
-use reqwest;
+use crate::services::recaptcha::verify_recaptcha;
+use crate::handlers::login;
+use argon2::{Argon2, PasswordHasher};
+use password_hash::SaltString;
+use rand_core::OsRng;
 
 #[derive(Deserialize)]
-pub struct RegisterForm {
+pub struct RegisterInput {
     pub email: String,
     pub password: String,
-    pub token: String, // <-- reCAPTCHA token
+    pub token: String,
 }
 
-#[derive(Deserialize)]
-struct RecaptchaResponse {
-    success: bool,
-    #[serde(rename = "error-codes")]
-    error_codes: Option<Vec<String>>,
-}
-
-pub async fn register_user(
+#[post("/register")]
+async fn register_user(
     db: web::Data<PgPool>,
-    form: web::Json<RegisterForm>,
+    form: web::Json<RegisterInput>,
 ) -> HttpResponse {
-    let secret_key = std::env::var("RECAPTCHA_SECRET_KEY").expect("🔐 Falta RECAPTCHA_SECRET_KEY");
+    match verify_recaptcha(&form.token).await {
+        Ok(true) => {}
+        Ok(false) => return HttpResponse::BadRequest().body("❌ reCAPTCHA inválido"),
+        Err(e) => {
+            eprintln!("Error reCAPTCHA: {:?}", e);
+            return HttpResponse::InternalServerError().body("❌ Error en reCAPTCHA");
+        }
+    }
 
-    let client = reqwest::Client::new();
-    let recaptcha_res = client.post("https://www.google.com/recaptcha/api/siteverify")
-        .form(&[
-            ("secret", secret_key.as_str()),
-            ("response", &form.token),
-        ])
-        .send()
+    let salt = SaltString::generate(&mut OsRng);
+    let argon2 = Argon2::default();
+    let hash = match argon2.hash_password(form.password.as_bytes(), &salt) {
+        Ok(pwd_hash) => pwd_hash.to_string(),
+        Err(_) => return HttpResponse::InternalServerError().body("❌ Fallo al encriptar"),
+    };
+
+    let result = sqlx::query("INSERT INTO users (email, password) VALUES ($1, $2)")
+        .bind(&form.email)
+        .bind(&hash)
+        .execute(db.get_ref())
         .await;
 
-    match recaptcha_res {
-        Ok(resp) => {
-            let body: RecaptchaResponse = match resp.json().await {
-                Ok(data) => data,
-                Err(_) => return HttpResponse::InternalServerError().body("❌ Error al procesar CAPTCHA"),
-            };
-
-            if !body.success {
-                return HttpResponse::Unauthorized().body("🚫 reCAPTCHA inválido");
-            }
-        }
-        Err(_) => return HttpResponse::InternalServerError().body("❌ No se pudo validar reCAPTCHA"),
-    }
-
-    let result = sqlx::query!(
-        "INSERT INTO users (email, password) VALUES ($1, $2)",
-        form.email,
-        form.password
-    )
-    .execute(db.get_ref())
-    .await;
-
     match result {
-        Ok(_) => HttpResponse::Ok().body("✅ Registro con CAPTCHA exitoso"),
+        Ok(_) => HttpResponse::Ok().body("✅ Usuario registrado correctamente"),
         Err(e) => {
-            eprintln!("❌ Error BD: {:?}", e);
-            HttpResponse::InternalServerError().body("❌ Error interno al registrar")
+            eprintln!("Error BD: {:?}", e);
+            HttpResponse::InternalServerError().body("❌ Error al registrar")
         }
     }
+}
+
+pub fn routes() -> Scope {
+    web::scope("/auth") // ✅ Esto monta todo bajo /auth
+        .service(register_user)
+        .service(login::login_user)
 }

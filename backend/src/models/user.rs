@@ -1,6 +1,7 @@
-use serde::{Deserialize, Serialize};
+use serde::Deserialize;
 use validator::Validate;
 
+#[allow(dead_code)]
 #[derive(Debug, Deserialize, Validate)]
 pub struct RegisterRequest {
     #[validate(email)]

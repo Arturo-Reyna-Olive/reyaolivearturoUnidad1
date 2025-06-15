@@ -1,7 +1,10 @@
-use sqlx::PgPool;
+use sqlx::{PgPool, postgres::PgPoolOptions};
 use std::env;
 
-pub async fn init() -> Result<PgPool, sqlx::Error> {
-    let url = env::var("DATABASE_URL").expect("Falta DATABASE_URL");
-    PgPool::connect(&url).await
+pub async fn init_db() -> Result<PgPool, sqlx::Error> {
+    let db_url = env::var("DATABASE_URL").expect("DATABASE_URL no encontrada");
+    PgPoolOptions::new()
+        .max_connections(5)
+        .connect(&db_url)
+        .await
 }
