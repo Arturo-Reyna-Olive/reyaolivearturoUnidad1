@@ -2,48 +2,580 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Registro</title>
+  <title>Genomatrix</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+  <style>
+    .scrollbar-hide::-webkit-scrollbar { display: none; }
+    .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  </style>
 </head>
-<body>
-  <h1>Registro</h1>
-  <form id="registerForm">
-  <input type="email" id="email" placeholder="Correo" required><br>
-  <input type="password" id="password" placeholder="Contraseña" required><br>
+<body class="bg-gradient-to-br from-black via-gray-900 to-black text-white flex flex-col min-h-screen">
 
-  <div class="g-recaptcha" data-sitekey="6Lf-NlorAAAAAOaObAI_jb5oAIYU0FGujgyCxIeZ"></div><br>
-  
-  <button type="submit">Registrarse</button>
-</form>
+<!-- NAVBAR -->
+<nav class="bg-[#0a1a2f] text-sm uppercase font-semibold tracking-wide text-gray-300 border-b border-blue-700 fixed w-full z-50">
+  <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+    
+    <!-- IZQUIERDA -->
+    <div id="navbar-left" class="flex space-x-8">
+      <button onclick="location.reload()" class="hover:text-blue-400 transition">Inicio</button>
+      <button onclick="openModal('registerModal')" class="hover:text-blue-400 transition" id="navRegistro">Registro</button>
+      <button onclick="openModal('profileModal')" class="hover:text-blue-400 transition hidden" id="btnPerfil">Perfil</button>
+      <button onclick="openModal('helpModal')" class="hover:text-blue-400 transition">Ayuda</button>
+      <button onclick="openModal('contactModal')" class="hover:text-blue-400 transition">Contacto</button>
+      <button onclick="openModal('mapModal')" class="hover:text-blue-400 transition">Mapa del sitio</button>
+      <button onclick="openModal('supportChatModal')" class="hover:text-blue-400 transition" id="btnChat">Chat de soporte</button>
+      <button onclick="openModal('suggestionModal')" class="hover:text-blue-400 transition hidden" id="btnSugerencias">Buzón de sugerencias</button>
+    </div>
 
-<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <!-- DERECHA -->
+    <div class="flex items-center space-x-6 text-sm">
+      <span class="text-gray-400">USD / ES</span>
+      <!-- NO logueado -->
+      <div id="guest-options" class="flex space-x-4">
+        <button onclick="openModal('loginModal')" class="flex items-center space-x-1 hover:text-blue-400">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9 9 0 1118.879 6.196M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+          <span>Iniciar sesión</span>
+        </button>
+      </div>
 
-  <script>
-    document.getElementById("registerForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
+      <!-- SÍ logueado -->
+      <div id="user-options" class="hidden flex items-center space-x-4">
+        <span id="user-name" class="text-blue-300 font-bold">Usuario</span>
+        <img id="user-avatar" src="https://ui-avatars.com/api/?name=Usuario&background=0D8ABC&color=fff" class="w-8 h-8 rounded-full border border-blue-500" />
+        <button onclick="logout()" class="text-sm text-red-400 hover:text-red-500">Cerrar sesión</button>
+      </div>
+    </div>
+  </div>
+</nav>
 
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
-  const token = grecaptcha.getResponse();
+<main class="flex-grow pt-32 px-4 text-center">
+  <h2 class="text-4xl font-bold mb-4">Explora el futuro de la <span class="text-blue-400">nanatecnología</span></h2>
+  <p class="max-w-2xl mx-auto text-gray-400 text-lg">Bienvenido a Genomatrix, donde la innovación se une con la ciencia para redefinir el mañana. Tecnología, salud y poder... al alcance de tu ADN.</p>
+</main>
 
-  if (!token) {
-    alert("⚠️ Completa el CAPTCHA primero");
-    return;
+<!-- Registro Modal -->
+<div id="registerModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 hidden">
+  <div class="bg-[#0f1c2e] rounded-lg border border-blue-700 w-full max-w-xl max-h-screen overflow-y-auto scrollbar-hide p-8 text-white relative">
+    <button onclick="closeModal('registerModal')" class="absolute top-3 right-4 text-gray-400 hover:text-red-500 text-2xl">&times;</button>
+    <h2 class="text-2xl font-semibold mb-6 text-blue-300 text-center">Create an account to begin your adventure</h2>
+    <form id="registerForm" class="space-y-4">
+      <input type="email" id="email" placeholder="Email" required class="w-full p-2 bg-black border border-gray-600 rounded">
+      <input type="email" id="confirm_email" placeholder="Confirm Email" required class="w-full p-2 bg-black border border-gray-600 rounded">
+      <input type="password" id="password" placeholder="Password" required class="w-full p-2 bg-black border border-gray-600 rounded" oninput="validatePassword()">
+      <ul class="text-xs text-gray-400 mt-1">
+        <li id="rule-length">• 8+ caracteres</li>
+        <li id="rule-uppercase">• Una mayúscula</li>
+        <li id="rule-number">• Un número o símbolo</li>
+      </ul>
+      <input type="password" id="confirm_password" placeholder="Confirm Password" required class="w-full p-2 bg-black border border-gray-600 rounded">
+      <input type="date" id="birthdate" required class="w-full p-2 bg-black border border-gray-600 rounded">
+      <div class="g-recaptcha" data-sitekey="6Lf-NlorAAAAAOaObAI_jb5oAIYU0FGujgyCxIeZ"></div>
+      <div class="flex items-start space-x-2 text-sm mt-3">
+        <input type="checkbox" required class="mt-1" />
+        <label>Acepto los <a href="#" class="text-blue-400 underline">Términos</a> y <a href="#" class="text-blue-400 underline">Política</a></label>
+      </div>
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 py-2 rounded font-bold text-lg">ENLIST NOW</button>
+    </form>
+  </div>
+</div>
+
+<!-- Login Modal -->
+<div id="loginModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 hidden">
+  <div class="bg-[#0f1c2e] rounded-lg border border-blue-700 w-full max-w-md p-6 text-white relative">
+    <button onclick="closeModal('loginModal')" class="absolute top-2 right-3 text-gray-400 hover:text-red-400 text-2xl">&times;</button>
+    <h3 class="text-2xl font-semibold mb-4 text-blue-300 text-center">Iniciar sesión</h3>
+    <form id="loginForm" class="space-y-4">
+      <input type="email" id="login_email" placeholder="Correo electrónico" required class="w-full p-2 bg-black border border-gray-600 rounded" />
+      <input type="password" id="login_password" placeholder="Contraseña" required class="w-full p-2 bg-black border border-gray-600 rounded" />
+      <div class="text-right text-sm">
+        <a href="#" onclick="openModal('recoveryModal'); closeModal('loginModal')" class="text-blue-400 hover:underline">¿Olvidaste tu contraseña?</a>
+      </div>
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 py-2 rounded font-semibold">Entrar</button>
+    </form>
+  </div>
+</div>
+
+<!-- Recuperar contraseña -->
+<div id="recoveryModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 hidden">
+  <div class="bg-[#0f1c2e] rounded-lg border border-blue-700 w-full max-w-md p-6 text-white relative">
+    <button onclick="closeModal('recoveryModal')" class="absolute top-2 right-3 text-gray-400 hover:text-red-400 text-2xl">&times;</button>
+    <h3 class="text-xl font-semibold mb-4 text-blue-300 text-center">Recuperar contraseña</h3>
+    <form id="recoveryForm" class="space-y-4">
+      <input type="email" id="recovery_email" placeholder="Correo registrado" required class="w-full p-2 bg-black border border-gray-600 rounded" />
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 py-2 rounded font-semibold">Enviar enlace</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal para resetear contraseña -->
+<div id="resetModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 hidden">
+  <div class="bg-[#0f1c2e] rounded-lg border border-blue-700 w-full max-w-md p-6 text-white relative">
+    <button onclick="closeModal('resetModal')" class="absolute top-2 right-3 text-gray-400 hover:text-red-400 text-2xl">&times;</button>
+    <h3 class="text-xl font-semibold mb-4 text-blue-300 text-center">Restablecer contraseña</h3>
+    <form id="resetForm" class="space-y-4">
+      <input type="password" id="new_password" placeholder="Nueva contraseña" required class="w-full p-2 bg-black border border-gray-600 rounded" />
+      <input type="password" id="reset_confirm_password" placeholder="Confirmar contraseña" required class="w-full p-2 bg-black border border-gray-600 rounded" />
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 py-2 rounded font-semibold">Actualizar contraseña</button>
+    </form>
+  </div>
+</div>
+
+<!-- Modal de Perfil -->
+<div id="profileModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 hidden">
+  <div class="bg-[#0f1c2e] rounded-lg border border-blue-700 w-full max-w-md p-6 text-white relative">
+    <button onclick="closeModal('profileModal')" class="absolute top-2 right-3 text-gray-400 hover:text-red-400 text-2xl">&times;</button>
+    <h3 class="text-xl font-semibold mb-4 text-blue-300 text-center">Perfil de usuario</h3>
+    <form id="profileForm" class="space-y-4 text-sm">
+      <!-- Avatar -->
+      <div class="flex flex-col items-center space-y-2">
+        <img id="profileAvatarPreview" src="https://ui-avatars.com/api/?name=Usuario&background=0D8ABC&color=fff" class="w-24 h-24 rounded-full border border-blue-500" />
+        <input type="file" id="avatarInput" accept="image/*" class="block text-sm text-gray-400" />
+      </div>
+      <!-- Correo solo lectura -->
+      <div>
+        <label class="block mb-1 text-gray-300">Correo electrónico</label>
+        <input id="profileEmail" type="email" readonly class="w-full p-2 bg-gray-900 border border-gray-600 rounded" />
+      </div>
+      <!-- Nombre editable -->
+      <div>
+        <label class="block mb-1 text-gray-300">Nombre de usuario</label>
+        <input id="profileUsername" type="text" class="w-full p-2 bg-black border border-gray-600 rounded" required />
+      </div>
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 py-2 rounded font-semibold">Guardar cambios</button>
+    </form>
+  </div>
+</div>
+<!-- Ayuda -->
+<div id="helpModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 hidden">
+  <div class="bg-[#0f1c2e] rounded-lg border border-blue-700 w-full max-w-md p-6 text-white relative">
+    <button onclick="closeModal('helpModal')" class="absolute top-2 right-3 text-gray-400 hover:text-red-400 text-2xl">&times;</button>
+    <h3 class="text-xl font-semibold mb-4 text-blue-300 text-center">Ayuda</h3>
+    <p class="text-sm text-gray-300">¿Tienes problemas? Consulta nuestra documentación o contáctanos.</p>
+  </div>
+</div>
+
+<!-- Contacto -->
+<div id="contactModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 hidden">
+  <div class="bg-[#0f1c2e] rounded-lg border border-blue-700 w-full max-w-md p-6 text-white relative">
+    <button onclick="closeModal('contactModal')" class="absolute top-2 right-3 text-gray-400 hover:text-red-400 text-2xl">&times;</button>
+    <h3 class="text-xl font-semibold mb-4 text-blue-300 text-center">Contacto</h3>
+    <form id="contactForm" class="space-y-4">
+      <input id="contact_name" type="text" placeholder="Tu nombre" required class="w-full p-2 bg-black border border-gray-600 rounded" />
+      <input id="contact_email" type="email" placeholder="Correo electrónico" required class="w-full p-2 bg-black border border-gray-600 rounded" />
+      <textarea id="contact_message" placeholder="Mensaje..." required class="w-full p-2 bg-black border border-gray-600 rounded h-28"></textarea>
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 py-2 rounded font-semibold">Enviar</button>
+    </form>
+  </div>
+</div>
+
+<!-- Buzón de Sugerencias -->
+<div id="suggestionModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 hidden">
+  <div class="bg-[#0f1c2e] rounded-lg border border-blue-700 w-full max-w-md p-6 text-white relative">
+    <button onclick="closeModal('suggestionModal')" class="absolute top-2 right-3 text-gray-400 hover:text-red-400 text-2xl">&times;</button>
+    <h3 class="text-xl font-semibold mb-4 text-blue-300 text-center">Buzón de Sugerencias</h3>
+    <form id="suggestionForm" class="space-y-4">
+      <input type="text" placeholder="Tu nombre" required class="w-full p-2 bg-black border border-gray-600 rounded" />
+      <textarea placeholder="Escribe tu sugerencia aquí..." required class="w-full p-2 bg-black border border-gray-600 rounded h-28"></textarea>
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 py-2 rounded font-semibold">Enviar sugerencia</button>
+    </form>
+  </div>
+</div>
+
+<!-- Chat de soporte (funcional) -->
+<div id="supportChatModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-80 hidden">
+  <div class="bg-[#0f1c2e] rounded-lg border border-blue-700 w-full max-w-md p-4 text-white relative flex flex-col h-[80vh]">
+    <button onclick="closeModal('supportChatModal')" class="absolute top-2 right-3 text-gray-400 hover:text-red-400 text-2xl">&times;</button>
+    <h3 class="text-xl font-semibold text-blue-300 mb-2 text-center">Chat de Soporte</h3>
+    
+    <!-- Conversación -->
+    <div id="chatMessages" class="flex-1 overflow-y-auto bg-gray-900 rounded p-2 mb-2 space-y-2 text-sm scrollbar-hide">
+      <div class="text-gray-400">💬 Hola, soy el asistente de Genomatrix. ¿En qué puedo ayudarte?</div>
+    </div>
+    
+    <!-- Input -->
+    <form id="supportChatForm" class="flex space-x-2">
+      <input type="text" id="chatInput" placeholder="Escribe tu duda..." required class="flex-1 p-2 bg-black border border-gray-600 rounded text-sm" />
+      <button type="submit" class="bg-blue-600 hover:bg-blue-500 px-4 rounded text-sm font-semibold">Enviar</button>
+    </form>
+  </div>
+</div>
+
+<section id="productos" class="mt-10 px-4">
+  <h2 class="text-2xl font-bold mb-4 text-blue-300 text-center">Tecnologías destacadas</h2>
+
+  <input type="text" id="searchInput" placeholder="Buscar producto..." class="w-full max-w-md mx-auto block mb-6 p-2 bg-black border border-gray-600 rounded text-center text-sm" />
+
+  <div id="productGrid" class="grid sm:grid-cols-2 md:grid-cols-3 gap-4">
+    <!-- Productos se insertan aquí -->
+  </div>
+</section>
+
+<!-- Mapa del sitio -->
+
+<div id="mapModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 hidden">
+  <div class="bg-[#0f1c2e] rounded-lg border border-blue-700 max-w-2xl w-full p-6 text-white relative">
+    <button onclick="closeModal('mapModal')" class="absolute top-2 right-3 text-gray-400 hover:text-red-400 text-2xl">&times;</button>
+    <h3 class="text-2xl font-bold text-center text-blue-400 mb-4">Mapa del sitio</h3>
+    <ul class="grid grid-cols-2 gap-4 text-sm text-blue-200">
+      <li><a href="#" onclick="location.reload()" class="hover:underline">Inicio</a></li>
+      <li><a href="#" onclick="openModal('registerModal')" class="hover:underline">Registro</a></li>
+      <li><a href="#" onclick="openModal('loginModal')" class="hover:underline">Iniciar sesión</a></li>
+      <li><a href="#" onclick="openModal('recoveryModal')" class="hover:underline">Recuperar contraseña</a></li>
+      <li><a href="#" onclick="requireLogin() && openModal('profileModal')" class="hover:underline">Perfil</a></li>
+      <li><a href="#" onclick="openModal('helpModal')" class="hover:underline">Ayuda</a></li>
+      <li><a href="#" onclick="openModal('contactModal')" class="hover:underline">Contacto</a></li>
+<li><a href="#" onclick="requireLogin() && openModal('suggestionModal')" class="hover:underline">Buzón de sugerencias</a></li>
+      <li><a href="#" onclick="openModal('supportChatModal')" class="hover:underline">Chat de soporte</a></li>
+      <li><a href="#" onclick="openModal('mapModal')" class="hover:underline">Mapa del sitio</a></li>
+    </ul>
+  </div>
+</div>
+
+<!-- Error de acceso (404) -->
+<div id="errorModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 hidden">
+  <div class="bg-[#1a1a1a] border border-red-700 rounded-lg max-w-md w-full p-6 text-center text-white">
+    <h2 class="text-2xl font-bold text-red-500 mb-4">🚫 Acceso denegado</h2>
+    <h2 class="text-2xl font-bold text-red-500 mb-4"> 404</h2>
+    <p class="text-sm text-gray-300 mb-4">Debes iniciar sesión para acceder a esta sección.</p>
+    <button onclick="closeModal('errorModal')" class="bg-red-600 hover:bg-red-500 px-4 py-2 rounded text-white font-semibold">Entendido</button>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="border-t border-blue-800 bg-black/80 py-6 text-center text-gray-400 text-sm mt-auto">
+  <div class="space-x-4 uppercase tracking-wide font-medium text-xs">
+    <a href="#" onclick="location.reload()" class="hover:text-blue-400">Inicio</a>
+    <a href="#" onclick="openModal('registerModal')" class="hover:text-blue-400">Registro</a>
+    <a href="#" onclick="openModal('loginModal')" class="hover:text-blue-400">Iniciar sesión</a>
+    <a href="#" onclick="openModal('profileModal')" class="hover:text-blue-400">Perfil</a>
+    <a href="#" onclick="openModal('helpModal')" class="hover:text-blue-400">Ayuda</a>
+    <a href="#" onclick="openModal('contactModal')" class="hover:text-blue-400">Contacto</a>
+    <a href="#" onclick="openModal('mapModal')" class="hover:text-blue-400">Mapa del sitio</a>
+  </div>
+  <p class="mt-3 text-xs text-gray-500">© 2025 Genomatrix. Todos los derechos reservados.</p>
+</footer>
+<!-- Scripts -->
+<!-- Scripts -->
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+    const userEmail = localStorage.getItem("user");
+    const guest = document.getElementById("guest-options");
+    const user = document.getElementById("user-options");
+    const perfil = document.getElementById("btnPerfil");
+    const sugerencias = document.getElementById("btnSugerencias");
+
+    if (userEmail) {
+      guest?.classList.add("hidden");
+      user?.classList.remove("hidden");
+      perfil?.classList.remove("hidden");
+      sugerencias?.classList.remove("hidden");
+      document.getElementById("user-name").textContent = userEmail;
+      document.getElementById("user-avatar").src = "https://ui-avatars.com/api/?name=" + encodeURIComponent(userEmail) + "&background=0D8ABC&color=fff";
+    } else {
+      guest?.classList.remove("hidden");
+      user?.classList.add("hidden");
+      perfil?.classList.add("hidden");
+      sugerencias?.classList.add("hidden");
+    }
+
+    // Token reset link
+    const hash = window.location.hash;
+    if (hash.startsWith("#reset?token=")) {
+      const token = hash.split("=")[1];
+      localStorage.setItem("reset_token", token);
+      openModal("resetModal");
+    }
+  });
+
+  function logout() {
+    localStorage.removeItem("user");
+    location.reload();
   }
 
-  try {
-    const res = await fetch("http://localhost:8080/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password, token })
+  function openModal(id) {
+    closeAllModals();
+    document.getElementById(id).classList.remove("hidden");
+  }
+
+  function closeModal(id) {
+    document.getElementById(id).classList.add("hidden");
+  }
+
+  function closeAllModals() {
+    document.querySelectorAll('[id$="Modal"]').forEach(m => m.classList.add('hidden'));
+  }
+
+  function validatePassword() {
+    const password = document.getElementById("password").value;
+    document.getElementById("rule-length").style.color = password.length >= 8 ? "lightgreen" : "gray";
+    document.getElementById("rule-uppercase").style.color = /[A-Z]/.test(password) ? "lightgreen" : "gray";
+    document.getElementById("rule-number").style.color = /[0-9\W]/.test(password) ? "lightgreen" : "gray";
+  }
+
+  // Registro
+  document.getElementById("registerForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("email").value;
+    const confirmEmail = document.getElementById("confirm_email").value;
+    const password = document.getElementById("password").value;
+    const confirmPassword = document.getElementById("confirm_password").value;
+    const birthdate = document.getElementById("birthdate").value;
+    const token = grecaptcha.getResponse();
+
+    if (email !== confirmEmail) return alert("❌ Los correos no coinciden.");
+    if (password !== confirmPassword) return alert("❌ Las contraseñas no coinciden.");
+    if (!token) return alert("⚠️ Completa el CAPTCHA");
+
+    try {
+      const res = await fetch("http://localhost:8000/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, token })
+      });
+
+      const text = await res.text();
+      alert(text);
+      if (res.ok) closeModal('registerModal');
+    } catch (err) {
+      console.error("❌ Error en registro:", err);
+      alert("Error en conexión");
+    }
+  });
+
+  // Login
+  document.getElementById("loginForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("login_email").value;
+    const password = document.getElementById("login_password").value;
+
+    try {
+      const res = await fetch("http://localhost:8000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      const text = await res.text();
+      alert(text);
+
+      if (res.ok) {
+        localStorage.setItem("user", email);
+        closeModal("loginModal");
+        location.reload();
+      }
+
+    } catch (err) {
+      console.error("❌ Error en login:", err);
+      alert("Error al iniciar sesión");
+    }
+  });
+
+  // Perfil
+  document.getElementById("avatarInput")?.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      document.getElementById("profileAvatarPreview").src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  document.getElementById("profileForm")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const username = document.getElementById("profileUsername").value;
+    alert("✅ Cambios guardados (pendiente integración backend)");
+    closeModal("profileModal");
+    document.getElementById("user-name").textContent = username;
+    document.getElementById("user-avatar").src =
+      "https://ui-avatars.com/api/?name=" + encodeURIComponent(username) + "&background=0D8ABC&color=fff";
+  });
+
+  // Recuperar contraseña
+  document.getElementById("recoveryForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const email = document.getElementById("recovery_email").value;
+
+    try {
+      const res = await fetch("http://localhost:8000/auth/recover", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+
+      const msg = await res.text();
+      alert(msg);
+      if (res.ok) closeModal("recoveryModal");
+    } catch (err) {
+      console.error("❌ Error al enviar recuperación:", err);
+      alert("Error al enviar el correo");
+    }
+  });
+
+  // Reset contraseña
+  document.getElementById("resetForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const password = document.getElementById("new_password").value;
+    const confirm = document.getElementById("reset_confirm_password").value;
+    const token = localStorage.getItem("reset_token");
+
+    if (!token) return alert("❌ Token inválido");
+    if (password !== confirm) return alert("❌ Las contraseñas no coinciden");
+
+    try {
+      const res = await fetch("http://localhost:8000/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, password })
+      });
+
+      const msg = await res.text();
+      alert(msg);
+      if (res.ok) {
+        localStorage.removeItem("reset_token");
+        closeModal("resetModal");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("❌ Error al actualizar contraseña");
+    }
+  });
+
+  // CONTACTO real
+  document.getElementById("contactForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const nombre = document.getElementById("contact_name").value;
+    const correo = document.getElementById("contact_email").value;
+    const mensaje = document.getElementById("contact_message").value;
+
+    try {
+      const res = await fetch("http://localhost:8000/send-contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre, correo, mensaje })
+      });
+
+      const texto = await res.text();
+      alert(texto);
+      if (res.ok) closeModal("contactModal");
+    } catch (err) {
+      console.error(err);
+      alert("❌ No se pudo enviar el mensaje.");
+    }
+  });
+
+  // SUGERENCIAS 
+  document.getElementById("suggestionForm")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const nombre = e.target[0].value;
+    const sugerencia = e.target[1].value;
+    alert("✅ ¡Gracias por tu sugerencia!\n" + sugerencia);
+    closeModal("suggestionModal");
+  });
+function requireLogin(sectionName = "") {
+  if (!localStorage.getItem("user")) {
+    openModal('errorModal');
+    return false;
+  }
+  return true;
+}
+
+  // CHAT SOPORTE funcional
+  document.getElementById("supportChatForm").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const input = document.getElementById("chatInput");
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    const chat = document.getElementById("chatMessages");
+
+    const userMsg = document.createElement("div");
+    userMsg.className = "text-blue-400 text-right";
+    userMsg.textContent = "🧑‍💻 " + msg;
+    chat.appendChild(userMsg);
+
+    const lower = msg.toLowerCase();
+    let respuesta = "🤖 No entendí tu pregunta. ¿Podrías reformularla?";
+
+    if (lower.includes("iniciar sesión") || lower.includes("login")) {
+      respuesta = "🔐 Para iniciar sesión, haz clic en “Iniciar sesión” en la parte superior.";
+    } else if (lower.includes("registrarme") || lower.includes("registro")) {
+      respuesta = "📝 Usa el botón “Registro” en el menú principal para crear tu cuenta.";
+    } else if (lower.includes("recuperar") || lower.includes("contraseña")) {
+      respuesta = "📧 En el login, haz clic en “¿Olvidaste tu contraseña?” para recuperarla.";
+    } else if (lower.includes("contacto") || lower.includes("mensaje")) {
+      respuesta = "📩 Usa la sección “Contacto” para enviarnos tu duda.";
+    } else if (lower.includes("sugerencia") || lower.includes("opinar")) {
+      respuesta = "💡 Si estás logueado, puedes usar el Buzón de Sugerencias desde el menú.";
+    }
+
+    const botMsg = document.createElement("div");
+    botMsg.className = "text-gray-300";
+    botMsg.textContent = respuesta;
+    chat.appendChild(botMsg);
+
+    chat.scrollTop = chat.scrollHeight;
+    input.value = "";
+  });
+</script>
+<script>
+const productos = [
+  {
+    nombre: "NanoSonda de ADN",
+    descripcion: "Detecta mutaciones en segundos con precisión atómica.",
+    img: "https://images.unsplash.com/photo-1606200651413-6dd2d370ef66?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    nombre: "MicroBioChip",
+    descripcion: "Mejora tu sistema inmunológico desde adentro.",
+    img: "https://images.unsplash.com/photo-1630416594397-d6c1368d048f?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    nombre: "GenoFusion XR",
+    descripcion: "Fusiona genes de forma segura y reversible.",
+    img: "https://images.unsplash.com/photo-1581091012184-7e0cdfbb6795?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    nombre: "NeuroEnlace X",
+    descripcion: "Controla interfaces digitales con tu mente.",
+    img: "https://images.unsplash.com/photo-1581091870627-3c5a6e64a7e4?auto=format&fit=crop&w=600&q=80"
+  },
+  {
+    nombre: "NanoVacX",
+    descripcion: "Vacuna inteligente adaptativa que evoluciona contigo.",
+    img: "https://images.unsplash.com/photo-1604079628043-9439ecde3bff?auto=format&fit=crop&w=600&q=80"
+  }
+];
+
+function renderProductos(filtro = "") {
+  const contenedor = document.getElementById("productGrid");
+  contenedor.innerHTML = "";
+
+  productos
+    .filter(p => p.nombre.toLowerCase().includes(filtro.toLowerCase()))
+    .forEach(p => {
+      contenedor.innerHTML += `
+  <div class="bg-[#121e2f] p-4 rounded-lg border border-blue-700 shadow-xl hover:shadow-2xl transition duration-300">
+    <img src="${p.img}" alt="${p.nombre}" class="w-full h-40 object-cover rounded mb-3 border border-blue-600 shadow">
+    <h3 class="text-lg font-semibold text-blue-400">${p.nombre}</h3>
+    <p class="text-sm text-gray-300">${p.descripcion}</p>
+  </div>
+`;
+
     });
+}
 
-    const text = await res.text();
-    alert(text);
-  } catch (err) {
-    console.error("❌ Error en fetch:", err);
-    alert("Error en conexión");
-  }
+document.getElementById("searchInput").addEventListener("input", (e) => {
+  renderProductos(e.target.value);
 });
-  </script>
+
+renderProductos();
+</script>
+
+
 </body>
 </html>
